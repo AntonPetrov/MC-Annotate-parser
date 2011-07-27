@@ -20,9 +20,9 @@ if ( scalar(@ARGV) < 1 ) {
 }
 chomp(@ARGV);
 open( IN,  '<', $ARGV[0] ) or die("Could not open $ARGV[0].\n");
-open( BPS, '>', 'MC-Annotate_basePairs.csv' ) or die('Could not open MC-Annotate_basePairs.csv');
-open( NBPS,'>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
-open( BST, '>', 'MC-Annotate_baseStacks.csv' ) or die('Could not open MC-Annotate_baseStacks.csv');
+open( BPS, '>>', 'MC-Annotate_basePairs.csv' ) or die('Could not open MC-Annotate_basePairs.csv');
+open( NBPS,'>>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
+open( BST, '>>', 'MC-Annotate_baseStacks.csv' ) or die('Could not open MC-Annotate_baseStacks.csv');
 
 if ( $ARGV[0] !~ /([A-z0-9]{4}) # $1, pdbId
                   _
