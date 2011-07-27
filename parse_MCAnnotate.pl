@@ -56,25 +56,28 @@ while ( $record = <IN> ) {
 
         # Parse residue conformations and store residue names
         # A1003 : G C3p_endo anti OR A1003.A : G C3p_endo anti
-        if ( $line =~ /^((\w)(\d+)(\.\w)?) # $1-mcID,$2-chain,$3-number,$4-insCode
-                       \s+:\s+
-                       (\w)\s+             # $5-residue
-                       (\w+)               # $6-puckerAtom
-                       _
-                       (\w+)\s+            # $7-puckerQual
-                       (\w+)               # $8-conf
+        if ( $line =~ /^((\w|'\d')(\d+)(\.\w)?) # $1-mcId,$2-chain,$3-number,$4-insCode
+                       \s:\s
+                       (\w)\s        # $5-residue
+                       (?:\w+)_      # $6-puckerAtom
+                       (?:\w+)\s     # $7-puckerQual
+                       (?:\w+)       # $8-conf
                        /x ) {
-
-            # store the conformations if necessary
-            $ntMap{$1} = $5;
+                        
+            $mcId = $1;
+            $res  = $5;
+            $mcId =~ s/('|\.)//g; #'      
+            $ntMap{$mcId} = $res;
+            # store the conformations if necessary      
         }
+        
 
         # Parse base pairs
         # A419-A424 : C-G Ww/Ww pairing antiparallel cis XIX OR A1030.A-A1030.C : G-G O2'/Hh Ss/O2P pairing
-        elsif ( $line =~ /^(\w)      # $1-ch1
+        elsif ( $line =~ /^(\w|'\d') # $1-ch1
                            (\d+)     # $2-res1
                            (\.\w)?-  # $3-insCode1
-                           (\w)      # $4-ch2
+                           (\w|'\d') # $4-ch2
                            (\d+)     # $5-res2
                            (\.\w)?   # $6-insCode2
                            \s:\s
@@ -86,28 +89,36 @@ while ( $record = <IN> ) {
                            (cis|trans)                  # $11-cis,trans
                            /ix ) {
 
-            $insertionCode1 = ( defined($3) ) ? substr($3,1,1) : '';
-            $insertionCode2 = ( defined($6) ) ? substr($6,1,1) : '';
+            $ch1  = $1; $ch2 = $4; 
+            $res1 = $2; $res2 = $5;
+            $insCode1 = ( defined($3) ) ? substr($3,1,1) : '';
+            $insCode2 = ( defined($6) ) ? substr($6,1,1) : '';
+            $base1 = $7; $base2= $8;
+            $MCpair = $9;
+            $cistrans = $11;
+            $ch1 =~ s/'//g; 
+            $ch2 =~ s/'//g;
 
             # pdb_id,pdb_type,NT.ModelNum,NT.Chain,NT.Number,NT.Base,insCode,alternateId
-            $ntId1 = join('_', $pdbId,$pdbType,$model,$1,$2,$7,$insertionCode1);
-            $ntId2 = join('_', $pdbId,$pdbType,$model,$4,$5,$8,$insertionCode2);
+            $ntId1 = join('_', $pdbId,$pdbType,$model,$ch1,$res1,$base1,$insCode1);
+            $ntId2 = join('_', $pdbId,$pdbType,$model,$ch2,$res2,$base2,$insCode2);
 
-            $LWpair  = substr($11,0,1) . substr($9,0,1) . substr($9,3,1);
-            $rLWpair = substr($11,0,1) . substr($9,3,1) . substr($9,0,1);
-            $rMCpair = substr($9,3,2) . '/' . substr($9,0,2);
+            $LWpair  = substr($cistrans,0,1) . substr($MCpair,0,1) . substr($MCpair,3,1);
+            $rLWpair = substr($cistrans,0,1) . substr($MCpair,3,1) . substr($MCpair,0,1);
+            $rMCpair = substr($MCpair,3,2) . '/' . substr($MCpair,0,2);
 
-            print BPS join("\t",$ntId1,$LWpair,$9,$ntId2) , "\n";
+            print BPS join("\t",$ntId1,$LWpair,$MCpair,$ntId2) , "\n";
             print BPS join("\t",$ntId2,$rLWpair,$rMCpair,$ntId1) , "\n";
 
         }
+        
 
-        # Other MC-Annotate pairs
+        # Pares other MC-Annotate pairs
         # A1266-A1268 : G-A O2'/Hh Hh/O2P pairing OR A1281-A1282 : U-C O2P/Bh adjacent_5p pairing
-        elsif ( $line =~ /^(\w)      # $1-ch1
+        elsif ( $line =~ /^(\w|'\d') # $1-ch1
                            (\d+)     # $2-res1
                            (\.\w)?-  # $3-insCode1
-                           (\w)      # $4-ch2
+                           (\w|'\d') # $4-ch2
                            (\d+)     # $5-res2
                            (\.\w)?   # $6-insCode2
                            \s:\s
@@ -118,14 +129,19 @@ while ( $record = <IN> ) {
                            (?:\s.{2,4}ward){0,1}  # don't include stacking
                            (?:\spairing){0,1}
                            /x ) {
-
+                            
+            $ch1  = $1; $ch2 = $4; 
+            $res1 = $2; $res2 = $5;
+            $insCode1 = ( defined($3) ) ? substr($3,1,1) : '';
+            $insCode2 = ( defined($6) ) ? substr($6,1,1) : '';
+            $base1 = $7; $base2= $8;
             $nearMCpair = $9;
-            $insertionCode1 = ( defined($3) ) ? substr($3,1,1) : '';
-            $insertionCode2 = ( defined($6) ) ? substr($6,1,1) : '';
+            $ch1 =~ s/'//g; 
+            $ch2 =~ s/'//g;
 
             # pdb_id,pdb_type,NT.ModelNum,NT.Chain,NT.Number,NT.Base,insCode,alternateId
-            $ntId1 = join('_', $pdbId,$pdbType,$model,$1,$2,$7,$insertionCode1);
-            $ntId2 = join('_', $pdbId,$pdbType,$model,$4,$5,$8,$insertionCode2);
+            $ntId1 = join('_', $pdbId,$pdbType,$model,$ch1,$res1,$base1,$insCode1);
+            $ntId2 = join('_', $pdbId,$pdbType,$model,$ch2,$res2,$base2,$insCode2);
 
             $rNearMCpair = '';
             @pairs = split(/\s/,$nearMCpair);
@@ -133,9 +149,7 @@ while ( $record = <IN> ) {
                 $pair =~ m/(.+)\/(.+)/;
                 $rNearMCpair .= $2 . '/' . $1  . ' ';
             }
-            $rNearMCpair =~ s/\s+$//;
-            
-#            print $nearMCpair , ' ' , $rNearMCpair , "\n";
+            $rNearMCpair =~ s/\s+$//;            
 
             print NBPS join("\t",$ntId1,$nearMCpair,$ntId2) , "\n";
             print NBPS join("\t",$ntId2,$rNearMCpair,$ntId1) , "\n";
@@ -147,18 +161,26 @@ while ( $record = <IN> ) {
         # A1028-A1029 : adjacent_5p upward OR A1030.B-A1030.C : adjacent_5p upward
         # non-adjacent stacking:
         # A1346-A1348 : outward OR A1347-A1373 : inward pairing
-        elsif ( $line =~ /^((\w)(\d+)(\.\w)?)- # $1-mcId1,$2-ch1,$3-res1,$4-insCode1
-                           ((\w)(\d+)(\.\w)?)  # $5-mcId2,$6-ch2,$7-res2,$8-insCode2
+        elsif ( $line =~ /^(\w|'\d')(\d+)(\.\w)?- # $1-ch1,$2-res1,$3-insCode1
+                           (\w|'\d')(\d+)(\.\w)?  # $4-ch2,$5-res2,$6-insCode2
                            \s:\s
                            (?:\w+\s)?
-                           (outward|inward|downward|upward) # $9-Xward
+                           (outward|inward|downward|upward) # $7-Xward
                            /x ) {
+        
+            $ch1 = $1;  $ch2 = $4;
+            $res1 = $2; $res2 = $5;
+            $insCode1 = ( defined($3) ) ? substr($3,1,1) : '';
+            $insCode2 = ( defined($6) ) ? substr($6,1,1) : '';            
+            $Xward = $7;                                   
+            $ch1 =~ s/'//g;
+            $ch2 =~ s/'//g;
 
-            $insertionCode1 = ( defined($4) ) ? substr($4,1,1) : '';
-            $insertionCode2 = ( defined($8) ) ? substr($8,1,1) : '';
+            $mcId1 = $ch1 . $res1 . $insCode1;
+            $mcId2 = $ch2 . $res2 . $insCode2; 
 
             # upward=s35, downward=s53, inward=s33, outward=s55
-            switch ($9) {
+            switch ($Xward) {
             	case "upward"	{ $LWstack = 's35'; $rLWstack = 's53'; $rXward = 'downward'; }
             	case "downward"	{ $LWstack = 's53'; $rLWstack = 's35'; $rXward = 'upward'; }
             	case "inward"	{ $LWstack = 's33'; $rLWstack = 's33'; $rXward = 'inward'; }
@@ -166,9 +188,9 @@ while ( $record = <IN> ) {
             }
 
             # pdb_id,pdb_type,NT.ModelNum,NT.Chain,NT.Number,NT.Base,insCode,alternateId
-            $ntId1 = join('_',$pdbId,$pdbType,$model,$2,$3,$ntMap{$1},$insertionCode1);
-            $ntId2 = join('_',$pdbId,$pdbType,$model,$6,$7,$ntMap{$5},$insertionCode2);
-            print BST join("\t",$ntId1,$LWstack,$9,$ntId2), "\n";
+            $ntId1 = join('_',$pdbId,$pdbType,$model,$ch1,$res1,$ntMap{$mcId1},$insCode1);
+            $ntId2 = join('_',$pdbId,$pdbType,$model,$ch2,$res2,$ntMap{$mcId2},$insCode2);
+            print BST join("\t",$ntId1,$LWstack,$Xward,$ntId2), "\n";
             print BST join("\t",$ntId2,$rLWstack,$rXward,$ntId1), "\n";
 
         }
