@@ -20,9 +20,6 @@ if ( scalar(@ARGV) < 1 ) {
 }
 chomp(@ARGV);
 open( IN,  '<', $ARGV[0] ) or die("Could not open $ARGV[0].\n");
-open( BPS, '>', 'MC-Annotate_basePairs.csv' ) or die('Could not open MC-Annotate_basePairs.csv');
-#open( NBPS,'>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
-open( BST, '>', 'MC-Annotate_baseStacks.csv' ) or die('Could not open MC-Annotate_baseStacks.csv');
 
 if ( $ARGV[0] !~ /([A-z0-9]{4}) # $1, pdbId
                   _
@@ -37,6 +34,12 @@ if ( $2 eq 'A' ) {
     $pdbType = "BA$2";
 }
 print $pdbId , '_' , $pdbType , "\n";
+
+$bps = 'MC-Annotate_basePairs_' . $pdbId . '_' . $pdbType . '.csv';
+$bst = 'MC-Annotate_baseStacks_' . $pdbId . '_' . $pdbType . '.csv';
+open( BPS, '>', $bps ) or die("Could not open $bps");
+open( BST, '>', $bst ) or die("Could not open $bst");
+#open( NBPS,'>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
 
 $model = -1;
 $/ = "Residue conformations";
