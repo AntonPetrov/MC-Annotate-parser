@@ -35,8 +35,12 @@ if ( $2 eq 'A' ) {
 }
 print $pdbId , '_' , $pdbType , "\n";
 
-$bps = 'MC-Annotate_basePairs_' . $pdbId . '_' . $pdbType . '.csv';
-$bst = 'MC-Annotate_baseStacks_' . $pdbId . '_' . $pdbType . '.csv';
+$outputFolder = 'MC_csv';
+unless ( -d $outputFolder ) {
+    mkdir($outputFolder);    
+}
+$bps = $outputFolder . '/MC-bps_' . $pdbId . '_' . $pdbType . '.csv';
+$bst = $outputFolder . '/MC-bst_' . $pdbId . '_' . $pdbType . '.csv';
 open( BPS, '>', $bps ) or die("Could not open $bps");
 open( BST, '>', $bst ) or die("Could not open $bst");
 #open( NBPS,'>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
