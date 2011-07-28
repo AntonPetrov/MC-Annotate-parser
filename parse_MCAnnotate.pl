@@ -20,9 +20,9 @@ if ( scalar(@ARGV) < 1 ) {
 }
 chomp(@ARGV);
 open( IN,  '<', $ARGV[0] ) or die("Could not open $ARGV[0].\n");
-open( BPS, '>>', 'MC-Annotate_basePairs.csv' ) or die('Could not open MC-Annotate_basePairs.csv');
-open( NBPS,'>>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
-open( BST, '>>', 'MC-Annotate_baseStacks.csv' ) or die('Could not open MC-Annotate_baseStacks.csv');
+open( BPS, '>', 'MC-Annotate_basePairs.csv' ) or die('Could not open MC-Annotate_basePairs.csv');
+#open( NBPS,'>', 'MC-Annotate_nearBasePairs.csv' ) or die('Could not open MC-Annotate_nearBasePairs.csv');
+open( BST, '>', 'MC-Annotate_baseStacks.csv' ) or die('Could not open MC-Annotate_baseStacks.csv');
 
 if ( $ARGV[0] !~ /([A-z0-9]{4}) # $1, pdbId
                   _
@@ -151,10 +151,13 @@ while ( $record = <IN> ) {
             }
             $rNearMCpair =~ s/\s+$//;            
 
-            print NBPS join("\t",$ntId1,$nearMCpair,$ntId2) , "\n";
-            print NBPS join("\t",$ntId2,$rNearMCpair,$ntId1) , "\n";
+            $LWcompatible = '';
+
+            print BPS join("\t",$ntId1,$LWcompatible,$nearMCpair,$ntId2) , "\n";
+            print BPS join("\t",$ntId2,$LWcompatible,$rNearMCpair,$ntId1) , "\n";
 
         }
+
 
         # Parse base stacking
         # adjacent base stacking:
@@ -212,4 +215,4 @@ while ( $record = <IN> ) {
 close(IN);
 close(BPS);
 close(BST);
-close(NBPS);
+#close(NBPS);
